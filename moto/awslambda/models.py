@@ -582,7 +582,7 @@ class LambdaFunction(CloudFormationModel, DockerModel):
                     #   for communication with other mock AWS services running on localhost
                     if platform == "linux" or platform == "linux2":
                         run_kwargs["extra_hosts"] = {
-                            "host.docker.internal": "host-gateway"
+                            "localhost": "host-gateway"
                         }
 
                     image_ref = "lambci/lambda:{}".format(self.run_time)
