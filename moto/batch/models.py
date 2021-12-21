@@ -610,13 +610,16 @@ class Job(threading.Thread, BaseModel, DockerModel):
                 logs_stderr = [x for x in logs_stderr if len(x) > 0]
                 logs = []
                 prev_date = None
+                run = uuid.uuid4()
                 for line in logs_stdout + logs_stderr:
                     date, line = line.split(" ", 1)
+                    date_obj_a = dateutil.parser.parse(date, ignoretz=True)
                     date_obj = (
                         dateutil.parser.parse(date)
                         .astimezone(datetime.timezone.utc)
                         .replace(tzinfo=None)
                     )
+                    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", run, date_obj_a, unix_time_millis(date_obj_a), date_obj, unix_time_millis(date_obj), date)
                     date = unix_time_millis(date_obj)
                     # Guarantee that logs are in order
                     if prev_date and prev_date > date:
