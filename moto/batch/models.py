@@ -609,23 +609,38 @@ class Job(threading.Thread, BaseModel, DockerModel):
                 logs_stdout = [x for x in logs_stdout if len(x) > 0]
                 logs_stderr = [x for x in logs_stderr if len(x) > 0]
                 logs = []
-                prev_date = None
-                run = uuid.uuid4()
-                for line in logs_stdout + logs_stderr:
+
+                stdout_logs = []
+                for line in logs_stdout:
                     date, line = line.split(" ", 1)
-                    date_obj_a = dateutil.parser.parse(date, ignoretz=True)
                     date_obj = (
                         dateutil.parser.parse(date)
                         .astimezone(datetime.timezone.utc)
                         .replace(tzinfo=None)
                     )
-                    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", run, date_obj_a, unix_time_millis(date_obj_a), date_obj, unix_time_millis(date_obj), date)
                     date = unix_time_millis(date_obj)
-                    # Guarantee that logs are in order
-                    if prev_date and prev_date > date:
-                        date = prev_date
-                    prev_date = date
-                    logs.append({"timestamp": date, "message": line.strip()})
+                    stdout_logs.append({"timestamp": date, "message": line.strip()})
+
+                stderr_logs = []
+                for line in logs_stderr:
+                    date, line = line.split(" ", 1)
+                    date_obj = (
+                        dateutil.parser.parse(date)
+                        .astimezone(datetime.timezone.utc)
+                        .replace(tzinfo=None)
+                    )
+                    date = unix_time_millis(date_obj)
+                    stderr_logs.append({"timestamp": date, "message": line.strip()})
+
+                while stdout_logs or stderr_logs:
+                    if not stderr_logs:
+                        logs.append(stdout_logs.pop(0))
+                    elif not stdout_logs:
+                        logs.append(stderr_logs.pop(0))
+                    elif stdout_logs[0] < stderr_logs[0]:
+                        logs.append(stdout_logs.pop(0))
+                    else:
+                        logs.append(stderr_logs.pop(0))
 
                 # Send to cloudwatch
                 log_group = "/aws/batch/job"
