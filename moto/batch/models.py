@@ -637,7 +637,7 @@ class Job(threading.Thread, BaseModel, DockerModel):
                         logs.append(stdout_logs.pop(0))
                     elif not stdout_logs:
                         logs.append(stderr_logs.pop(0))
-                    elif stdout_logs[0] < stderr_logs[0]:
+                    elif stdout_logs[0]["timestamp"] < stderr_logs[0]["timestamp"]:
                         logs.append(stdout_logs.pop(0))
                     else:
                         logs.append(stderr_logs.pop(0))
