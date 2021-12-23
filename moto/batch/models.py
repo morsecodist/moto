@@ -552,6 +552,7 @@ class Job(threading.Thread, BaseModel, DockerModel):
             if sys.platform == "linux" or sys.platform == "linux2":
                 run_kwargs["extra_hosts"] = {
                     "host.docker.internal": "host-gateway",
+                    "test-bucket.host.docker.internal": "host.docker.internal",
                 }
 
             log_config = docker.types.LogConfig(type=docker.types.LogConfig.types.JSON)
