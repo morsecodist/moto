@@ -6,6 +6,7 @@ import uuid
 import logging
 import docker
 import threading
+import sys
 import dateutil.parser
 from boto3 import Session
 
@@ -545,6 +546,15 @@ class Job(threading.Thread, BaseModel, DockerModel):
 
             self.job_started_at = datetime.datetime.now()
 
+            run_kwargs = {}
+            # add host.docker.internal host on linux to emulate Mac + Windows behavior
+            #   for communication with other mock AWS services running on localhost
+            if sys.platform == "linux" or sys.platform == "linux2":
+                run_kwargs["extra_hosts"] = {
+                    "host.docker.internal": "host-gateway",
+                    "host.docker.internal": "test-bucket.host.docker.internal",
+                }
+
             log_config = docker.types.LogConfig(type=docker.types.LogConfig.types.JSON)
             self.job_state = "STARTING"
             container = self.docker_client.containers.run(
@@ -556,6 +566,7 @@ class Job(threading.Thread, BaseModel, DockerModel):
                 environment=environment,
                 mounts=mounts,
                 privileged=privileged,
+                **run_kwargs,
             )
             self.job_state = "RUNNING"
             try:
