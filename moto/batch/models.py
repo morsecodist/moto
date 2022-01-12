@@ -626,6 +626,12 @@ class Job(threading.Thread, BaseModel, DockerModel):
                     .split("\n")
                 )
 
+                for log in logs_stdout:
+                    sys.stderr.write(f"OUT: {log}\n")
+
+                for log in logs_stderr:
+                    sys.stderr.write(f"ERR: {log}\n")
+
                 # Process logs
                 logs_stdout = [x for x in logs_stdout if len(x) > 0]
                 logs_stderr = [x for x in logs_stderr if len(x) > 0]
